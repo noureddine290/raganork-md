@@ -8,7 +8,8 @@ const {
 } = require('../main');
 Module({
     pattern: 'react ?(.*)',
-    fromMe: true
+    fromMe: true,
+    use: 'utility'
 }, (async (m, t) => {
     let msg = {
         remoteJid: m.reply_message.jid,

@@ -8,7 +8,7 @@ const stream = require('stream');
 const {promisify} = require('util');
 const pipeline = promisify(stream.pipeline);
 const {saveMessage} = require('./misc/saveMessage');
-Module({pattern: 'removebg ?(.*)', fromMe: true, desc: "Removes image background"}, (async (message, match) => {    
+Module({pattern: 'removebg ?(.*)', fromMe: w,use: 'edit', desc: "Removes image background"}, (async (message, match) => {    
 if (message.reply_message === false || message.reply_message.image === false) return await message.sendMessage("*Reply to a photo*");
 if (!RBG_KEY) return await message.sendReply("*Need API key from _https://remove.bg_*");
         var location = await saveMessage(message.reply_message);

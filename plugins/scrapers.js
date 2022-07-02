@@ -29,14 +29,15 @@ const {
     ytdlServer,
     skbuffer
 } = require('raganork-bot');
-const ytdl = require('ytdl-core');
 const LanguageDetect = require('languagedetect');
+const { downloadYT } = require('./misc/yt');
 const lngDetector = new LanguageDetect();
 Module({
     pattern: 'trt ?(.*)',
     fromMe: w,
     usage: Lang.TRANSLATE_USAGE,
-    desc: Lang.TRANSLATE_DESC
+    desc: Lang.TRANSLATE_DESC,
+    use: 'utility'
 }, async (message, match) => {
     if (!message.reply_message) return await message.sendReply(Lang.NEED_REPLY)
     var from = match[1].split(" ")[0] || ''
@@ -53,7 +54,8 @@ Module({
 Module({
     pattern: 'tts ?(.*)',
     fromMe: w,
-    desc: Lang.TTS_DESC
+    desc: Lang.TTS_DESC,
+    use: 'utility'
 }, async (message, match) => {
     var query = match[1] || message.reply_message.text
     if (!query) return await message.sendReply(Lang.TTS_NEED_REPLY);
@@ -88,7 +90,8 @@ Module({
 Module({
     pattern: 'ytv ?(.*)',
     fromMe: w,
-    desc: Lang.YTV_DESC
+    desc: Lang.YTV_DESC,
+    use: 'download'
 }, (async (message, match) => {
     await sendYtQualityList(message, match);
 }));
@@ -101,7 +104,8 @@ Module({
 Module({
     pattern: 'img ?(.*)',
     fromMe: w,
-    desc: Lang.IMG_DESC
+    desc: Lang.IMG_DESC,
+    use: 'search'
 }, (async (message, match) => {
     if (!match[1]) return await message.sendReply(Lang.NEED_WORD);
     var count = parseInt(match[1].split(",")[1]) || 5
@@ -110,9 +114,8 @@ Module({
         const results = await gis(query);
         await message.sendReply(Lang.IMG.format(results.splice(0, count).length, query))
         for (var i = 0; i < (results.length < count ? results.length : count); i++) {
-            await message.sendMessage({
-                url: results[i].url
-            }, 'image');
+         var buff = await skbuffer(results[i].url);
+         await message.sendMessage(buff, 'image');
         }
     } catch (e) {
         await message.sendReply(e);
@@ -121,21 +124,20 @@ Module({
 Module({
     pattern: 'video ?(.*)',
     fromMe: w,
-    desc: Lang.VIDEO_DESC
+    desc: Lang.VIDEO_DESC,
+    use: 'download'
 }, async (message, match) => {
     var s1 = !match[1].includes('youtu') ? message.reply_message.message : match[1]
-    if (!s1) return await message.sendReply(Lang.NEED_VIDEO);
-    if (!s1.includes('youtu')) return await message.sendReply(Lang.NEED_VIDEO);
+    if (s1 && s1.includes("instagram")) return;
+    if (!s1) return await message.sendReply("*"+Lang.NEED_VIDEO+"*");
+    if (!s1.includes('youtu')) return await message.sendReply("*"+Lang.NEED_VIDEO+"*");
     const getID = /(?:http(?:s|):\/\/|)(?:(?:www\.|)youtube(?:\-nocookie|)\.com\/(?:watch\?.*(?:|\&)v=|embed|shorts\/|v\/)|youtu\.be\/)([-_0-9A-Za-z]{11})/
     var qq = getID.exec(s1)
-    try {
-        var dl = await getVideo(qq[1])
-    } catch {
         var {
             url,
             thumbnail,
             title
-        } = await ytdlServer("https://youtu.be/" + qq[1]);
+        } = await downloadYT(qq[1]);
         return await message.client.sendMessage(message.jid, {
             video: {
                 url: url
@@ -143,43 +145,13 @@ Module({
             mimetype: "video/mp4",
             caption: title,
             thumbnail: await skbuffer(thumbnail)
-        });
-    }
-    var cap = dl.details.title || ""
-    var th = dl.details.thumbnail.url || null
-    try {
-        var yt = ytdl(qq[1], {
-            filter: format => format.container === 'mp4' && ['720p', '480p', '360p', '240p', '144p'].map(() => true)
-        });
-    } catch {
-        var {
-            url,
-            thumbnail,
-            title
-        } = await ytdlServer("https://youtu.be/" + qq[1]);
-        return await message.client.sendMessage(message.jid, {
-            video: {
-                url: url
-            },
-            mimetype: "video/mp4",
-            caption: title,
-            thumbnail: await skbuffer(thumbnail)
-        });
-    }
-    yt.pipe(fs.createWriteStream('./temp/' + qq[1] + '.mp4'));
-    yt.on('end', async () => {
-        await message.client.sendMessage(message.jid, {
-            video: fs.readFileSync('./temp/' + qq[1] + '.mp4'),
-            mimetype: "video/mp4",
-            caption: cap,
-            thumbnail: await skbuffer(th)
         });
     });
-});
 Module({
     pattern: 'news ?(.*)',// Credit: LyFE's API
     fromMe: w,
-    desc: "Malayalam news"
+    desc: "Malayalam news",
+    use: 'utility'
 }, async (message, match) => {
     var news = [];
     var res = (await axios("https://levanter.up.railway.app/news")).data
@@ -188,7 +160,6 @@ Module({
     }
     const headlines = [{title: "കൂടുതല്‍ അറിയുവാന്‍ വാര്‍ത്തകള്‍ ക്ലിക്ക് ചെയ്യൂ",rows: news}]
     const listMessage = {
-        text:"And 9 more...",
         footer: "📰 Latest news from www.manoramanews.com",
         title: res.result[0].title,
         buttonText: "മറ്റു വാര്‍ത്തകള്‍ 🔍",
@@ -199,10 +170,11 @@ Module({
 Module({
     pattern: 'mediafire ?(.*)',
     fromMe: w,
-    desc: "Mediafire Download Link"
+    desc: "Mediafire Download Link",
+    use: 'utility'
 }, async (message, match) => {
     if (!match[1]) return await message.sendReply("*Need url*");
-    var {link,title,size} = (await axios("https://raganork-api.vercel.app/api/mediafire?url="+match[1])).data
+    var {link,title,size} = (await axios("https://raganork-network.vercel.app/api/mediafire?url="+match[1])).data
     var mediaFire = [{
         urlButton: {
             displayText: 'Download',
@@ -211,6 +183,17 @@ Module({
     }]
    var header = "_File:_ "+title+"\n _Size:_ "+size+"\n _Click this button to download_"
 return await message.sendImageTemplate(await skbuffer("https://play-lh.googleusercontent.com/Br7DFOmd9GCUmXdyTnPVqNj_klusX0OEx6MrElu8Avl2KJ7wbsS7dBdci293o7vF4fk"),header,"Mediafire Downloader",mediaFire)
+});
+Module({
+    pattern: 'ss ?(.*)',
+    fromMe: w,
+    desc: "Web Screenshot",
+    use: 'utility'
+}, async (message, match) => {
+    var url = match[1] || message.reply_message.text
+    if (!url || !/\bhttps?:\/\/\S+/gi.test(url)) return await message.sendReply("*Need url*");
+    await message.sendMessage("*Taking screenshot...*");
+    return await message.sendReply(await skbuffer("https://shot.screenshotapi.net/screenshot?&url="+url.match(/\bhttps?:\/\/\S+/gi)[0]+"&fresh=true&output=image&file_type=png&wait_for_event=load"),'image')
 });
 Module({
     on: 'button',
@@ -224,7 +207,8 @@ Module({
     Module({
         pattern: 'detectlang$',
         fromMe: w,
-        desc: Lang.DLANG_DESC
+        desc: Lang.DLANG_DESC,
+        use: 'utility'
     }, async (message, match) => {
     
     if (!message.reply_message) return await message.sendMessage(Lang.NEED_REPLY)
@@ -253,29 +237,30 @@ Module({
 Module({
     pattern: 'movie (.*)',
     fromMe: w,
-    desc: "Movie search"
+    desc: "Movie search",
+    use: 'search'
 }, async (message, match) => {
-    if (match[1] === '') return await message.sendReply('```Give me a movie name 👀.```');
+    if (match[1] === '') return await message.sendReply('_Need a movie name!_');
 	var {data} = await axios(`http://www.omdbapi.com/?apikey=742b2d09&t=${match[1]}&plot=full`);
-	if (data.Response != 'True') return await message.sendReply(data.Error);
-	let msg = '```';
-	msg += 'Title      : ' + data.Title + '\n\n';
-	msg += 'Year       : ' + data.Year + '\n\n';
-	msg += 'Rated      : ' + data.Rated + '\n\n';
-	msg += 'Released   : ' + data.Released + '\n\n';
-	msg += 'Runtime    : ' + data.Runtime + '\n\n';
-	msg += 'Genre      : ' + data.Genre + '\n\n';
-	msg += 'Director   : ' + data.Director + '\n\n';
-	msg += 'Writer     : ' + data.Writer + '\n\n';
-	msg += 'Actors     : ' + data.Actors + '\n\n';
-	msg += 'Plot       : ' + data.Plot + '\n\n';
-	msg += 'Language   : ' + data.Language + '\n\n';
-	msg += 'Country    : ' + data.Country + '\n\n';
-	msg += 'Awards     : ' + data.Awards + '\n\n';
-	msg += 'BoxOffice  : ' + data.BoxOffice + '\n\n';
-	msg += 'Production : ' + data.Production + '\n\n';
-	msg += 'imdbRating : ' + data.imdbRating + '\n\n';
-	msg += 'imdbVotes  : ' + data.imdbVotes + '```';
+	if (data.Response != 'True') return await message.sendReply("_"+data.Error+"_");
+	let msg = '';
+	msg += '_Title_     : *' + data.Title + '*\n\n';
+	msg += '_Year_      : *' + data.Year + '*\n\n';
+	msg += '_Rated_     : *' + data.Rated + '*\n\n';
+	msg += '_Released_  : *' + data.Released + '*\n\n';
+	msg += '_Runtime_   : *' + data.Runtime + '*\n\n';
+	msg += '_Genre_     : *' + data.Genre + '*\n\n';
+	msg += '_Director_  : *' + data.Director + '*\n\n';
+	msg += '_Writer_    : *' + data.Writer + '*\n\n';
+	msg += '_Actors_    : *' + data.Actors + '*\n\n';
+	msg += '_Plot_      : *' + data.Plot + '*\n\n';
+	msg += '_Language_  : *' + data.Language + '*\n\n';
+	msg += '_Country_   : *' + data.Country + '*\n\n';
+	msg += '_Awards_    : *' + data.Awards + '*\n\n';
+	msg += '_BoxOffice_ : *' + data.BoxOffice + '*\n\n';
+	msg += '_Production_: *' + data.Production + '*\n\n';
+	msg += '_imdbRating_: *' + data.imdbRating + '*\n\n';
+	msg += '_imdbVotes_ : *' + data.imdbVotes;
     var posterApi = (await axios(`https://api.themoviedb.org/3/search/movie?api_key=15d2ea6d0dc1d476efbca3eba2b9bbfb&query=${data.Title}`)).data
     var poster = posterApi.total_results !== 0 ? "https://image.tmdb.org/t/p/w500/"+posterApi.results[0].poster_path : data.Poster
     return await message.client.sendMessage(message.jid,{image: {url: poster}, caption:msg},{quoted: message.data})

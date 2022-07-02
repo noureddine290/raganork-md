@@ -18,11 +18,15 @@ let Lang = getString('external_plugin');
 Module({
     pattern: 'install ?(.*)',
     fromMe: true,
+    use: 'owner',
     desc: Lang.INSTALL_DESC
 }, (async (message, match) => {
-    if (match[1] === '') return await message.sendMessage(Lang.NEED_URL)
+    match = match[1]!==""?match[1]:message.reply_message.text
+    if (!match || !/\bhttps?:\/\/\S+/gi.test(match)) return await message.sendMessage(Lang.NEED_URL)
+    let links = match.match(/\bhttps?:\/\/\S+/gi);
+    for (let link of links){
     try {
-        var url = new URL(match[1]);
+        var url = new URL(link);
     } catch {
         return await message.sendMessage(Lang.INVALID_URL);
     }
@@ -33,7 +37,7 @@ Module({
         url = url.toString()
     }
     try {
-        var response = await axios(url);
+        var response = await axios(url+"?timestamp="+new Date());
     } catch {
         return await message.sendMessage(Lang.INVALID_URL)
     }
@@ -48,11 +52,13 @@ Module({
     }
     await Db.installPlugin(url, plugin_name);
     await message.sendMessage(Lang.INSTALLED.format(plugin_name));
+}
 }));
 
 Module({
     pattern: 'plugin ?(.*)',
     fromMe: true,
+    use: 'owner',
     desc: Lang.PLUGIN_DESC
 }, (async (message, match) => {
     var plugins = await Db.PluginDB.findAll();
@@ -82,6 +88,7 @@ Module({
 Module({
     pattern: 'remove(?: |$)(.*)',
     fromMe: true,
+    use: 'owner',
     desc: Lang.REMOVE_DESC
 }, (async (message, match) => {
     if (match[1] === '') return await message.sendMessage(Lang.NEED_PLUGIN);
@@ -96,6 +103,14 @@ Module({
         await plugin[0].destroy();
         delete require.cache[require.resolve('./' + match[1] + '.js')]
         fs.unlinkSync('./plugins/' + match[1] + '.js');
-        await message.sendMessage(Lang.DELETED.format(match[1]));
+    const buttons = [{buttonId: 'restart '+message.myid, buttonText: {displayText: 'Restart'}, type: 1}]
+          
+          const buttonMessage = {
+              text: Lang.DELETED.format(match[1]),
+              footer: '_Restart to make effect_',
+              buttons: buttons,
+              headerType: 1
+          }
+        await message.client.sendMessage(message.jid,buttonMessage);
     }
 }));

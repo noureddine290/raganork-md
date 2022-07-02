@@ -2,13 +2,13 @@
     "STRINGS": {
         "converters": {
         "STICKER_DESC":"Sticker create cheyyan",
-        "STICKER_NEED_REPLY":"Enth sticker? photo/video reply cheyy",
+        "STICKER_NEED_REPLY":"_Photo/video kk reply aayi ayakk!_",
         "MP3_DESC":"Video/Audio mp3 format convert cheyyum",
-        "MP3_NEED_REPLY:":"Reply cheyy. audio/video",
+        "MP3_NEED_REPLY:":"_Reply cheyy. audio/video_",
         "BASS_DESC:":"Audio il bass boost cheyyum. .bass 20",
-        "BASS_NEED_REPLY:":"Audio evide mister?",
+        "BASS_NEED_REPLY:":"_Audio evide mister?_",
         "PHOTO_DESC":"Sticker photo aakki therum",
-        "PHOTO_NEED_REPLY":"Animated allatha oru stickerinu reply chey"
+        "PHOTO_NEED_REPLY":"_Animated allatha oru stickerinu reply chey_"
         },
         "external_plugin": {
             "INSTALL_DESC": "Plugins install cheyyum",
@@ -51,13 +51,12 @@
             "INVITE": "Invite link:",
             "JID_DESC": "Chat/user jid eduth therum.",
             "GROUP_COMMAND": "Ith oru group command aanu.",
-            "WARN_DESC": "Warning kodukkum",
-            "WARNING": "Warning",
-            "USER": "```User:``` ",
-            "REMAINING": "```Bakki:``` ",
-            "REASON": "```Kaaranam:``` ",
-            "WARN_RESET": "Mm, warns reset akki {} of {}",
-            "WARN_OVER": "Ninakk njan ({}) warnings thannu.. Ini direct kick {}"
+            "WARNING": "     ⚠️ WARNING  ⚠️",
+            "USER": "*Member:* ```{}```",
+            "REMAINING": "*Sheshikunna warns:* ```{}```",
+            "REASON": "*Kaaranam:* ```{}```",
+            "WARN_RESET": "_Mm, {} warnings und ini ninak_ _{}_ 😁",
+            "WARN_OVER": "_Ninte njan maximum warnings thannu, {} Kicked_"
         },
         "media": {
             "TRIM_DESC": "Video or Audio cut cheyyum",
@@ -105,15 +104,15 @@
             "NOT_FOUND": "No results found for this key"
         },
         "filters": {
-            "FILTER_DESC": "It adds a filter. If someone writes your filter, it send the answer. If you just write .filter, it show's your filter list.",
-            "NO_FILTER": "No filters found in this chat",
-            "FILTERS": "🔎 Your filters in this chat:",
-            "NEED_REPLY": "❌ Please type in reply!*\n*Example:",
-            "FILTERED": "✅ Successfully set* _{}_ *to filter!",
-            "STOP_DESC": "Stops the filter you added previously.",
-            "NEED_FILTER": "❌ Please type a filter!*\n*Example:",
-            "ALREADY_NO_FILTER": "❌ There is already no filter like this!",
-            "DELETED": "✅ The filter was successfully deleted!"
+            "FILTER_DESC": "Auto reply set cheyyum.",
+            "NO_FILTER": "_Ithil filters onnum illa!_",
+            "FILTERS": "_Ee chatil set cheytha filters_:",
+            "NEED_REPLY": "_Angane alla_!*\n*Example:",
+            "FILTERED": "_{}_ *filter set cheyth!*",
+            "STOP_DESC": "Add akiya filter remove cheyyum.",
+            "NEED_FILTER": "_Angane alla!_*\n*Example:",
+            "ALREADY_NO_FILTER": "❌ _Angane oru filter illalo 🤦‍♂️ Onnukoodi think cheyy!_",
+            "DELETED": "✅ _Mm, filter delete cheyth!_"
         },
         "greetings": {
             "WELCOME_DESC": "Groupil welcome message set akkan.",
@@ -189,7 +188,7 @@
         },
         "sticker": {
             "STICKER_DESC": "Sticker indakkum.",
-            "NEED_REPLY": "Reply to a photo or short video"
+            "NEED_REPLY": "Photo|video kk reply aayi ayakk"
         },
         "system_stats": {
             "ALIVE_DESC": "Checks if the bot is working or not",
